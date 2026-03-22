@@ -36,6 +36,46 @@ pip install -r requirements.txt
 
 All ETL modules use SQL `MERGE` (upsert) on `id_api` as the natural key from the API.
 
+## Retomada do Pipeline (limite diário da API)
+
+O plano gratuito da API-Football tem limite diário de ~100 requests. O pipeline pode ser interrompido no meio das estatísticas. Ao retomar no dia seguinte, siga esta ordem:
+
+**1. Verificar quantos jogos já foram processados:**
+```bash
+cd "C:\Users\guiha\OneDrive\Documentos\FutebolBR"
+python -c "
+import pyodbc
+from config import CONNECTION_STRING
+conn = pyodbc.connect(CONNECTION_STRING)
+cur = conn.cursor()
+cur.execute('SELECT COUNT(DISTINCT id_jogo) FROM Estatisticas_Jogo')
+print('Jogos com estatisticas:', cur.fetchone()[0])
+cur.execute('SELECT COUNT(*) FROM Jogos WHERE status = \'Match Finished\'')
+print('Total jogos finalizados:', cur.fetchone()[0])
+conn.close()
+"
+```
+
+**2. Continuar de onde parou (retomada automática — pula jogos já processados):**
+```bash
+python main.py --skip-jogadores
+```
+
+O pipeline detecta automaticamente quais jogos já têm estatísticas salvas e processa apenas os pendentes. Repetir este comando diariamente até completar todos os 380 jogos (~8 dias no plano gratuito).
+
+**3. Quando concluir (340 jogos restantes processados), conferir classificação:**
+```bash
+python -c "
+import pyodbc
+from config import CONNECTION_STRING
+conn = pyodbc.connect(CONNECTION_STRING)
+cur = conn.cursor()
+cur.execute('SELECT COUNT(*) FROM Classificacao')
+print('Registros em Classificacao:', cur.fetchone()[0])
+conn.close()
+"
+```
+
 ## API Rate Limits
 
 The free plan allows **10 requests/minute** and only seasons **2022–2024**. The `estatisticas.py` module adds `time.sleep(7)` between each of the 2 calls per game — with 380 games, the full statistics step takes ~1h30.

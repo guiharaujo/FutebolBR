@@ -121,14 +121,21 @@ def _salvar_estat_jogadores(cursor, id_jogo, jogadores_stats):
         )
 
 
+def _jogos_ja_processados(cursor):
+    cursor.execute("SELECT DISTINCT id_jogo FROM Estatisticas_Jogo")
+    return {row[0] for row in cursor.fetchall()}
+
+
 def buscar_e_salvar():
     print("[Estatisticas] Iniciando busca por jogo...")
     conn = pyodbc.connect(CONNECTION_STRING)
     cursor = conn.cursor()
     jogos = _jogos_finalizados(cursor)
-    print(f"[Estatisticas] {len(jogos)} jogos finalizados para processar.")
+    ja_processados = _jogos_ja_processados(cursor)
+    pendentes = [(id_jogo, id_api, a, b) for id_jogo, id_api, a, b in jogos if id_jogo not in ja_processados]
+    print(f"[Estatisticas] {len(jogos)} jogos finalizados | {len(ja_processados)} já processados | {len(pendentes)} pendentes.")
 
-    for i, (id_jogo, id_api_jogo, _, _) in enumerate(jogos):
+    for i, (id_jogo, id_api_jogo, _, _) in enumerate(pendentes):
         # Estatísticas por time
         data_stat = get("fixtures/statistics", {"fixture": id_api_jogo})
         for team_stat in data_stat.get("response", []):
@@ -148,7 +155,7 @@ def buscar_e_salvar():
 
         time.sleep(7)  # respeita rate limit de 10 req/min
         if (i + 1) % 10 == 0:
-            print(f"[Estatisticas] {i + 1}/{len(jogos)} jogos processados...")
+            print(f"[Estatisticas] {i + 1}/{len(pendentes)} jogos processados...")
 
     conn.close()
     print("[Estatisticas] Concluido.")
