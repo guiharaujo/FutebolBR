@@ -43,3 +43,17 @@ The free plan allows **10 requests/minute** and only seasons **2022–2024**. Th
 ## SQL Server Connection
 
 Uses Windows Authentication (`Trusted_Connection=yes`) with `TrustServerCertificate=yes`. Requires **ODBC Driver 17 for SQL Server** installed locally. Server is `localhost`, database is `FutebolBR`.
+
+## GitHub Repository
+
+**URL:** https://github.com/guiharaujo/FutebolBR
+
+**Auto-sync:** A `post-commit` git hook automatically pushes to GitHub after every commit. To publish changes:
+
+```bash
+git add .
+git commit -m "descrição das mudanças"
+# O push para o GitHub acontece automaticamente
+```
+
+**Segurança:** `config.py` está no `.gitignore` e nunca é enviado ao GitHub (contém API key e connection string). Use `config.example.py` como template ao clonar o repositório.
