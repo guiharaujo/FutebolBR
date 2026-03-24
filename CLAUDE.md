@@ -63,7 +63,9 @@ python main.py --skip-jogadores
 
 O pipeline detecta automaticamente quais jogos já têm estatísticas salvas e processa apenas os pendentes. Repetir este comando diariamente até completar todos os 380 jogos (~8 dias no plano gratuito).
 
-**3. Quando concluir (340 jogos restantes processados), conferir classificação:**
+**Progresso atual (atualizado em 2026-03-24):** 97/380 jogos com estatísticas processadas.
+
+**3. Quando concluir (283 jogos restantes), conferir classificação:**
 ```bash
 python -c "
 import pyodbc
